@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import pandas as pd
-import glob
 
 equipo_diccionario = {
     "529": "FC Barcelona",
@@ -23,22 +22,43 @@ equipo_diccionario = {
     "728": "Rayo Vallecano",
     "798": "Mallorca"
 }
+precios_iniciales = {}
+for j in range(1,13):
+    archivo_preu = f"../dataset-html/preu_inicial{j}.html"
+    with open(archivo_preu, encoding="utf-8") as file_preu:
+        html_content_preu = file_preu.read()
 
-archivos_html = glob.glob("./estadisticas_fantasy*.html")
+    soup_preu = BeautifulSoup(html_content_preu, "html.parser")
+    tabla_preu = soup_preu.find("table", {"class": "custom-table"})
+    if tabla_preu:
+        filas_preu = tabla_preu.find_all("tr")
+        for fila_preu in filas_preu[1:]:
+            columnas_preu = fila_preu.find_all("td")
+            nombre_columna_preu = columnas_preu[1]
+            nombre_completo_preu = nombre_columna_preu.text.strip()[2:].strip()       
+            precio_inicial = columnas_preu[2].text.strip()
+            precios_iniciales[nombre_completo_preu] = precio_inicial
+
+for name, price in precios_iniciales.items():
+    print(name, price)
+num_total_jugadores = len(precios_iniciales)
+print(f"Total jugadores: {num_total_jugadores}")
+
 
 data = []
-
-for i in range(1,13):
-    archivo = filename = f"./estadisticas{i}.html"
+for i in range(1, 13):
+    archivo = f"../dataset-html/estadisticas{i}.html"
+    
     with open(archivo, encoding="utf-8") as file:
         html_content = file.read()
 
     soup = BeautifulSoup(html_content, "html.parser")
     tabla = soup.find("table", {"class": "custom-table"})
 
+
     if tabla:
         filas = tabla.find_all("tr")
-        for fila in filas[1:]:  # Ignorem encapçalament
+        for fila in filas[1:]:
             columnas = fila.find_all("td")
             nombre_columna = columnas[1]
             nombre_completo = nombre_columna.text.strip()
@@ -46,20 +66,21 @@ for i in range(1,13):
             imagenes = nombre_columna.find_all("img")
             if len(imagenes) > 1:
                 escudo_url = imagenes[1].get("src")
-                escudo_id = escudo_url.split("/")[-1].split(".")[0]  # ID de l'escut
+                escudo_id = escudo_url.split("/")[-1].split(".")[0]
                 equipo_nombre = equipo_diccionario.get(escudo_id, "Equipo desconocido")
             else:
                 escudo_url = None
                 equipo_nombre = "Equipo desconocido"
 
             fila_datos = {
-                "Nombre": nombre_completo[2:].strip(),  # Resta de lletres son nom
-                "Posición": nombre_completo[:2].strip(),  # Dos primeres lletres son posicio
+                "Nombre": nombre_completo[2:].strip(),
+                "Posición": nombre_completo[:2].strip(),
                 "Equipo": equipo_nombre,
                 "Puntos": columnas[2].text.strip(),
                 "Media Puntos Relevo": columnas[3].text.strip(),
                 "Puntos Relevo": columnas[4].text.strip(),
-                "Precio": columnas[5].text.strip(),
+                "Precio Actual": columnas[5].text.strip(),
+                "Precio Inicial": precios_iniciales.get(nombre_completo[2:].strip()),
                 "Media": columnas[6].text.strip(),
                 "Partidos": columnas[7].text.strip(),
                 "Minutos": columnas[8].text.strip(),
@@ -81,12 +102,11 @@ for i in range(1,13):
                 "Segundas Amarillas": columnas[24].text.strip(),
                 "Penaltis Provocados": columnas[25].text.strip(),
                 "Penaltis Parados": columnas[26].text.strip(),
-                "Goles en Propia Puerta": columnas[27].text.strip()
+                "Goles en Propia Puerta": columnas[27].text.strip(),
             }
 
             data.append(fila_datos)
 
 df = pd.DataFrame(data)
-print(df)
 
-df.to_csv("estadisticas_fantasy.csv", index=True, encoding='utf-8')
+df.to_csv("estadisticas_fantasy.csv", index=False, encoding="utf-8")
