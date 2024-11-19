@@ -8,6 +8,7 @@ equipo_diccionario = {
     "532": "Valencia CF",
     "533": "Villarreal CF",
     "534": "Las Palmas",
+    "536": "Sevilla",
     "537": "Leganés",
     "538": "Celta de Vigo",
     "540": "Espanyol",
