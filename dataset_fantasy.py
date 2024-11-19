@@ -15,8 +15,9 @@ equipo_diccionario = {
     "541": "Real Madrid",
     "542": "Alavés",
     "543": "Real Betis",
-    "546": "Espanyol",
+    "546": "Getafe",
     "547": "Girona",
+    "547_002": "Girona",
     "548": "Real Sociedad",
     "720": "Valladolid",
     "727": "Osasuna",
@@ -106,4 +107,4 @@ for i in range(1, 13):
 
 df = pd.DataFrame(data)
 
-df.to_csv("estadisticas_fantasy.csv", index=False, encoding="utf-8")
+df.to_csv("estadisticas_fantasy.csv", index=True, encoding="utf-8")
