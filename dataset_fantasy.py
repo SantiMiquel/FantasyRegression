@@ -39,10 +39,6 @@ for j in range(1,13):
             precio_inicial = columnas_preu[2].text.strip()
             precios_iniciales[nombre_completo_preu] = precio_inicial
 
-for name, price in precios_iniciales.items():
-    print(name, price)
-num_total_jugadores = len(precios_iniciales)
-print(f"Total jugadores: {num_total_jugadores}")
 
 
 data = []
@@ -79,8 +75,8 @@ for i in range(1, 13):
                 "Puntos": columnas[2].text.strip(),
                 "Media Puntos Relevo": columnas[3].text.strip(),
                 "Puntos Relevo": columnas[4].text.strip(),
-                "Precio Actual": columnas[5].text.strip(),
-                "Precio Inicial": precios_iniciales.get(nombre_completo[2:].strip()),
+                "Precio Actual": columnas[5].text.strip()[:-2],
+                "Precio Inicial": precios_iniciales.get(nombre_completo[2:].strip())[:-2],
                 "Media": columnas[6].text.strip(),
                 "Partidos": columnas[7].text.strip(),
                 "Minutos": columnas[8].text.strip(),
