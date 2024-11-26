@@ -10,6 +10,7 @@ from sklearn.ensemble import AdaBoostRegressor
 from lightgbm import LGBMRegressor
 from xgboost import XGBRegressor
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score
 
 # Cargar el dataset
 df = pd.read_csv('estadisticas_fantasy.csv')
@@ -18,11 +19,10 @@ df = pd.read_csv('estadisticas_fantasy.csv')
 df.rename(columns={'Unnamed: 0': 'ID_jugador'}, inplace=True)
 df['Precio Actual'] = df['Precio Actual'].str.replace('.', '').astype(int)
 df['Precio Inicial'] = df['Precio Inicial'].str.replace('.', '').astype(int)
-df['Diferencia Preu'] = df['Precio Actual'] - df['Precio Inicial']
 
 # Eliminamos variables no relevantes
 df = df[df['Posición'] != 'DT']
-df.drop(columns=['Nombre', 'ID_jugador', 'Precio Inicial', 'Precio Actual'], inplace=True)
+df.drop(columns=['Nombre', 'ID_jugador', 'Precio Inicial'], inplace=True)
 
 # Encoding de variables categóricas
 from sklearn.preprocessing import LabelEncoder
@@ -39,7 +39,7 @@ df['Minuts_quadrat'] = df['Minutos'] ** 2
 df['Log_Gols'] = np.log1p(df['Goles'])
 
 # Separación de variables predictoras y target
-target_att = 'Diferencia Preu'
+target_att = 'Precio Actual'
 attributes = [col for col in df.columns if col != target_att]
 X = df[attributes]
 y = df[target_att]
@@ -67,9 +67,11 @@ for name, model in models.items():
     model.fit(X_train, y_train.ravel())  # y_train.ravel() para evitar el warning
     y_pred_train = model.predict(X_train)
     y_pred_test = model.predict(X_test)
+    r2_train = r2_score(y_train, y_pred_train)
+    r2_test = r2_score(y_test, y_pred_test)
     mae_train = mean_absolute_error(y_train, y_pred_train)
     mae_test = mean_absolute_error(y_test, y_pred_test)
-    results[name] = {"MAE Train": mae_train, "MAE Test": mae_test}
+    results[name] = {"MAE Train": mae_train, "MAE Test": mae_test, 'R2 Train': r2_train, 'R2 Test': r2_test}
 
 # Mostrar los resultados
 results_df = pd.DataFrame(results).T
@@ -109,6 +111,8 @@ fig, ax = plt.subplots(figsize=(10, 6))
 model_names = list(results.keys())
 mae_train_values = [results[name]["MAE Train"] for name in model_names]
 mae_test_values = [results[name]["MAE Test"] for name in model_names]
+r2_train_values = [results[name]['R2 Train'] for name in model_names]
+r2_test_values = [results[name]['R2 Test'] for name in model_names]
 
 bar_width = 0.35
 index = np.arange(len(model_names))
@@ -124,3 +128,5 @@ ax.set_xticklabels(model_names, rotation=45)
 ax.legend()
 plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
 plt.show()
+print(f'R2 Train: {r2_train_values}')
+print(f'R2 test {r2_test_values}')
